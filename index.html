@@ -1,0 +1,362 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Complaint Ticket System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+            color: #222;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 40px auto;
+            padding: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 18px;
+            margin-bottom: 7px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        textarea {
+            min-height: 180px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 25px;
+            border: none;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .success {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 6px;
+        }
+
+        .admin {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #ddd;
+        }
+
+        .admin button {
+            background: #555;
+        }
+
+        .admin button:hover {
+            background: #333;
+        }
+
+        .warning {
+            font-size: 13px;
+            color: #777;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Complaint / Incident Report</h1>
+
+        <p class="description">
+            Please provide the information below to submit a complaint.
+        </p>
+
+        <form id="ticketForm">
+
+            <label for="name">
+                Your Name
+            </label>
+
+            <input
+                type="text"
+                id="name"
+                placeholder="Enter your name"
+                required
+            >
+
+            <label for="person">
+                Person Involved
+            </label>
+
+            <input
+                type="text"
+                id="person"
+                placeholder="Name of the person involved"
+                required
+            >
+
+            <label for="date">
+                Date of Incident
+            </label>
+
+            <input
+                type="date"
+                id="date"
+                required
+            >
+
+            <label for="time">
+                Time of Incident
+            </label>
+
+            <input
+                type="time"
+                id="time"
+                required
+            >
+
+            <label for="complaint">
+                Complaint Details
+            </label>
+
+            <textarea
+                id="complaint"
+                placeholder="Please explain what happened..."
+                required
+            ></textarea>
+
+            <button type="submit">
+                Submit Complaint
+            </button>
+
+        </form>
+
+        <div id="successMessage" class="success">
+            Complaint submitted successfully.
+        </div>
+
+        <p class="warning">
+            Your submission is stored locally in this browser. It is not
+            automatically sent to the school or another person.
+        </p>
+
+        <div class="admin">
+
+            <h2>Administrator</h2>
+
+            <p>
+                Export locally stored complaints to a file that can be
+                transferred using a USB drive.
+            </p>
+
+            <button onclick="exportTickets()">
+                Export Complaints
+            </button>
+
+            <button onclick="clearTickets()">
+                Clear Local Complaints
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    // Load existing tickets from browser storage.
+    let tickets = JSON.parse(
+        localStorage.getItem("complaintTickets")
+    ) || [];
+
+
+    // Handle ticket submission.
+    document
+        .getElementById("ticketForm")
+        .addEventListener("submit", function(event) {
+
+            event.preventDefault();
+
+            const ticket = {
+
+                id: crypto.randomUUID(),
+
+                submittedAt: new Date().toISOString(),
+
+                name:
+                    document.getElementById("name").value.trim(),
+
+                person:
+                    document.getElementById("person").value.trim(),
+
+                date:
+                    document.getElementById("date").value,
+
+                time:
+                    document.getElementById("time").value,
+
+                complaint:
+                    document.getElementById("complaint").value.trim()
+            };
+
+
+            // Add the ticket to the local array.
+            tickets.push(ticket);
+
+
+            // Save tickets to browser localStorage.
+            localStorage.setItem(
+                "complaintTickets",
+                JSON.stringify(tickets)
+            );
+
+
+            // Show confirmation.
+            document.getElementById(
+                "successMessage"
+            ).style.display = "block";
+
+
+            // Reset the form.
+            document.getElementById(
+                "ticketForm"
+            ).reset();
+
+        });
+
+
+    // Export tickets as a JSON file.
+    function exportTickets() {
+
+        if (tickets.length === 0) {
+
+            alert("There are no complaints to export.");
+
+            return;
+        }
+
+
+        const data = JSON.stringify(
+            tickets,
+            null,
+            4
+        );
+
+
+        const blob = new Blob(
+            [data],
+            {
+                type: "application/json"
+            }
+        );
+
+
+        const url = URL.createObjectURL(blob);
+
+
+        const link = document.createElement("a");
+
+        link.href = url;
+
+        link.download =
+            "complaint-tickets-" +
+            new Date().toISOString().split("T")[0] +
+            ".json";
+
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+
+        URL.revokeObjectURL(url);
+    }
+
+
+    // Delete locally stored tickets.
+    function clearTickets() {
+
+        const confirmation = confirm(
+            "Are you sure you want to delete ALL locally stored complaints?"
+        );
+
+
+        if (!confirmation) {
+            return;
+        }
+
+
+        tickets = [];
+
+        localStorage.removeItem(
+            "complaintTickets"
+        );
+
+
+        alert(
+            "All locally stored complaints have been deleted."
+        );
+    }
+
+</script>
+
+</body>
+</html>
+```
